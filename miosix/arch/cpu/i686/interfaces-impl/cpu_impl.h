@@ -47,7 +47,8 @@
 namespace miosix {
 
 inline void IRQinvokeScheduler() noexcept {
-  // 0x80 is defined as the yield scheduler in the IDT
+  // 0x80 is defined for now as the yield scheduler in the IDT (the be updated
+  // whith the new implementation of the IDT)
   asm volatile("int 0x80" ::: "memory");
 }
 

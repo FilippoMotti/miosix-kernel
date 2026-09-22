@@ -61,9 +61,8 @@ void initKernelThreadCtxsave(unsigned int *ctxsave,
 
 void IRQportableStartKernel() noexcept {
 
-  /*#TODO: controllare dove finiscono questi bit settati e come andrebbero
-  settati per x86
-  sembrerebbe che i bit che setta sono sempre attivi non appena si carica la idt
+  /*#TODO: check where these bits are going to get get set (in hardware) and how
+  in the IDT will be set when the IDT will be implemented
   // Enable fault handlers
   SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk |
                 SCB_SHCSR_MEMFAULTENA_Msk;
