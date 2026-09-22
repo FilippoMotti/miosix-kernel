@@ -1,1 +1,1 @@
-#include "../../common/i686_mmu.h"
+#include "mmu.h"
