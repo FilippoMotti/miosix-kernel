@@ -3,6 +3,8 @@
 
 namespace miosix {
 
+extern void GDTLoad(uint32_t);
+
 struct GDTEntryStruct GDTEntries[5];
 struct GDTPointerStruct GDTPointer;
 
@@ -39,19 +41,7 @@ void initGDT() {
   setGDTGate(3, 0, 0xFFFFFF, 0xFA, 0xCF); // User Code segment
   setGDTGate(4, 0, 0xFFFFFF, 0xF2, 0xCF); // User Code segment
 
-  asm volatile("lgdt [%0]" // Load GDTEntries
-
-               "mov eax, 0x10" // Update segment registers
-               "mov ds, ax"
-               "mov es, ax"
-               "mov fs, ax"
-               "mov gs, ax"
-               "mov ss, ax"
-
-               "JMP 0x08:.flush" // Update Code Segment by doing a far jump
-               ".flush:"
-               "RET" ::"r"(&GDTEntries)
-               : "eax", "memory");
+  GDTLoad((uint32_t)&GDTPointer);
 }
 
 } // namespace miosix
