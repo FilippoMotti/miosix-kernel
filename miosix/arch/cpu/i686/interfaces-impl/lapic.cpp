@@ -9,7 +9,7 @@ namespace miosix {
 #define APIC_LVT_INT_MASKED 0x10000
 
 // Address of the LAPIC
-static volatile uint32_t *lapic_base = nullptr;
+static volatile localAPICStruct *lapic = nullptr;
 
 static inline uint64_t rdmsr(uint32_t msr) {
   uint32_t lo;
@@ -26,23 +26,6 @@ static inline void wrmsr(uint32_t msr, uint64_t value) {
 
   asm volatile("wrmsr" : : "c"(msr), "a"(lo), "d"(hi) : "memory");
 }
-
-// Since the pointer is 32 bit, we have to divide by 4 to reach the correct
-// address, as every element of the pointer is 4 byte long.
-constexpr uint32_t OFF(uint32_t offset) { return offset / 4; }
-
-// Important registers
-const uint32_t LAPIC_ID = OFF(0x020);
-const uint32_t LAPIC_EOI = OFF(0x0B0);
-const uint32_t LAPIC_SIVR = OFF(0x0F0); // Spurious Interrupt Vector
-const uint32_t LAPIC_TPR = OFF(0x080);  // Task Priority Register
-
-// Timer registers
-const uint32_t LAPIC_TIMER_LVT = OFF(0x320);    // Local Vector Table (Timer)
-const uint32_t LAPIC_TIMER_INIT = OFF(0x380);   // Initial Count
-const uint32_t LAPIC_TIMER_CRRCNT = OFF(0x390); // Current Count
-const uint32_t LAPIC_TIMER_CUR = OFF(0x390);    // Current Count
-const uint32_t LAPIC_TIMER_DIV = OFF(0x3E0);    // Divide Configuration
 
 // Helper functions for pit and pic
 static inline uint8_t inb(uint16_t port) {
@@ -96,53 +79,52 @@ void initLAPIC() {
   // Get apic base address
   // #TODO: Remember to add it to virtual memory; For correct operation the
   // local APIC registers should be mapped as 'strong uncachable'.
-  lapic_base = reinterpret_cast<volatile uint32_t *>(apic_msr & 0xFFFFF000);
+  lapic = (localAPICStruct *)(apic_msr & 0xFFFFF000);
   // The Task Priority Register (TPR) is a 32-bit register used to control the
   // minimum priority an interrupt needs to have for it to be delivered. 0 is
   // lowest, 15 is highest and only higher AND NOT higher or equal is delivered
-  lapic_base[LAPIC_TPR] = 0;
+  lapic->tpr.reg = 0;
 
   // Set the Spurious Interrupt Vector Register bit 8 to start receiving
   // interrupts
-  lapic_base[LAPIC_SIVR] = 0x100 | 0xFF;
+  lapic->sivr.reg = 0x100 | 0xFF;
 }
 
 void sendEOI() {
   // Write 0 in the EOI registers to let the APIC resume sending interrupts to
   // the processors
-  lapic_base[LAPIC_EOI] = 0;
+  lapic->eoi.reg = 0;
 }
 
 void initLAPICTimer(uint32_t timer_interrupt_vector) {
 
-  if (!lapic_base)
+  if (!lapic)
     return;
   asm volatile("cli");
   // Tell APIC timer to use divider 16
-  lapic_base[LAPIC_TIMER_DIV] = 0x03;
+  lapic->timer_divide.reg = 0x03;
 
   // Prepare the PIT to sleep for 10ms (10000µs)
   PITPrepareSleep(10000);
   //
   // Set APIC init counter to -1
-  lapic_base[LAPIC_TIMER_INIT] = 0xFFFFFFFF;
+  lapic->timer_initial.reg = 0xFFFFFFFF;
   //
   // Perform PIT-supported sleep
   PITPerformSleep();
   // Stop the APIC timer
-  lapic_base[LAPIC_TIMER_LVT] = APIC_LVT_INT_MASKED;
+  lapic->lvt_timer.reg = APIC_LVT_INT_MASKED;
   // Now we know how often the APIC timer has ticked in 10ms
-  uint32_t ticksIn10ms = 0xFFFFFFFF - lapic_base[LAPIC_TIMER_CRRCNT];
+  uint32_t ticksIn10ms = 0xFFFFFFFF - lapic->timer_current.reg;
 
   uint32_t ticks_1ms = ticksIn10ms / 10;
 
   // Start timer as periodic on requested vector, divider 16, with 1ms ticks
 
-  lapic_base[LAPIC_TIMER_LVT] =
-      timer_interrupt_vector | APIC_LVT_TIMER_MODE_PERIODIC;
+  lapic->lvt_timer.reg = timer_interrupt_vector | APIC_LVT_TIMER_MODE_PERIODIC;
 
-  lapic_base[LAPIC_TIMER_DIV] = 0x03;
-  lapic_base[LAPIC_TIMER_INIT] = ticks_1ms;
+  lapic->timer_divide.reg = 0x03;
+  lapic->timer_initial.reg = ticks_1ms;
 }
 
 } // namespace miosix
