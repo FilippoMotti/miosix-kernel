@@ -82,7 +82,8 @@ inline void *atomicFetchAndIncrement(void *const volatile *p, int offset,
     // start
     if (result != *p)
       continue;
-    if (atomicCompareAndSwap(rcp, rc, rc + incr) == rc) {
+    if (atomicCompareAndSwap(reinterpret_cast<volatile int *>(rcp), rc,
+                             rc + incr) == rc) {
       break;
     }
   }
