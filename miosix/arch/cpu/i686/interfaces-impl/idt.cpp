@@ -89,6 +89,7 @@ void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector,
   IDTEntries[num].flags = flags | 0x60;
 }
 
+// #TODO: implement the actual handler. TBD
 void isrHandler(struct InterruptRegisters *regs) {
   if (regs->int_no < 32) {
   }
@@ -102,13 +103,4 @@ void irqInstallHandler(int irq, void (*handler)(struct InterruptRegisters *r)) {
 
 void irqUninstallHandler(int irq) { irqRoutines[irq] = 0; }
 
-void irqHandler(struct InterruptRegisters *regs) {
-  void (*handler)(struct InterruptRegisters *regs);
-
-  handler = irqRoutines[regs->int_no - 32]; // IRQ starts at number 32
-
-  if (handler) {
-    handler(regs);
-  }
-}
 } // namespace miosix
