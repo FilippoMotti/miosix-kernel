@@ -1,5 +1,6 @@
 #pragma once
 #include "idt.h"
+#include "string.h"
 
 namespace miosix {
 
