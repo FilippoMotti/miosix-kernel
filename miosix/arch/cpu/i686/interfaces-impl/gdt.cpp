@@ -1,12 +1,15 @@
 #pragma once
 #include "gdt.h"
+#include "string.h"
 
 namespace miosix {
 
 extern void GDTLoad(uint32_t);
+extern void TSSLoad();
 
-struct GDTEntryStruct GDTEntries[5];
+struct GDTEntryStruct GDTEntries[6];
 struct GDTPointerStruct GDTPointer;
+struct TSSEntryStruct TSSEntry;
 
 void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access,
                 uint8_t gran) {
@@ -23,9 +26,23 @@ void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access,
   GDTEntries[num].access = access;
 }
 
+void writeTSS(uint32_t num, uint16_t ss0, uint32_t esp0) {
+  uint32_t base = (uint32_t)&TSSEntry;
+  uint32_t limit = sizeof(TSSEntryStruct) - 1;
+
+  setGDTGate(num, base, limit, 0x89, 0x40);
+  memset(&GDTEntries, 0, sizeof(GDTEntries));
+
+  TSSEntry.ss0 = ss0;
+  TSSEntry.esp0 = esp0;
+  TSSEntry.cs = 0x08;
+  TSSEntry.iomap_base = sizeof(TSSEntryStruct);
+  TSSLoad();
+}
+
 void initGDT() {
-  GDTPointer.limit = (sizeof(struct GDTEntryStruct) * 5) -
-                     1; // sub 1 is to use the right offset for memory
+  // sub 1 is to use the right offset for memory
+  GDTPointer.limit = (sizeof(struct GDTEntryStruct) * 6) - 1;
   GDTPointer.base = reinterpret_cast<uint32_t>(&GDTEntries);
 
   setGDTGate(0, 0, 0, 0, 0);              // Null segment
@@ -40,6 +57,8 @@ void initGDT() {
   setGDTGate(2, 0, 0xFFFFFF, 0x92, 0xCF); // Kernel Data segment
   setGDTGate(3, 0, 0xFFFFFF, 0xFA, 0xCF); // User Code segment
   setGDTGate(4, 0, 0xFFFFFF, 0xF2, 0xCF); // User Code segment
+
+  writeTSS(5, 0x10, 0x0);
 
   GDTLoad((uint32_t)&GDTPointer);
 }

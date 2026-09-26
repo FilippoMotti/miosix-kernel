@@ -13,3 +13,12 @@ GDTLoad:
     JMP 0x08:.flush # Update Code Segment by doing a far jump
 .flush:
     RET
+
+global TSSLoad
+
+TSSLoad:
+  MOV ax, 0x28
+  LTR ax
+
+
+
