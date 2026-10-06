@@ -25,8 +25,8 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-OUTPUT_FORMAT("elf32-littlearm")
-OUTPUT_ARCH(arm)
+OUTPUT_FORMAT("elf32-i386")
+OUTPUT_ARCH(i386)
 ENTRY(_start)
 
 SECTIONS
@@ -40,28 +40,13 @@ SECTIONS
         *(.text.*)
         *(.gnu.linkonce.t.*)
     }
-    
+
     .rodata : ALIGN(8)
     {
         *(.rodata)
         *(.rodata.*)
         *(.gnu.linkonce.r.*)
     }
-
-    .ARM.extab : ALIGN(8)
-    {
-        *(.gcc_except_table)
-        *(.gcc_except_table.*)
-        *(.ARM.extab*)
-        *(.gnu.linkonce.armextab.*)
-    }
-    __exidx_start = .;
-    /* NOTE: just calling it .ARM.exidx breaks the program header */
-    .ARM.exidx.mx :
-    {
-        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    }
-    __exidx_end = .;
 
     .rel.data : { *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*) }
     .rel.got  : { *(.rel.got) }
@@ -123,6 +108,5 @@ SECTIONS
         *(.dynstr)
         *(.hash)
         *(.comment)
-        *(.ARM.attributes)
     }
 }

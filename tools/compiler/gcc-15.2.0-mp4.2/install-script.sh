@@ -465,7 +465,7 @@ $SUDO ../$GCC/configure \
   --disable-shared \
   --disable-libssp \
   --disable-nls \
-  --disable-libgomp \
+  --enable-libgomp \
   --disable-libstdcxx-pch \
   --disable-libstdcxx-dual-abi \
   --disable-libstdcxx-filesystem-ts \
@@ -641,14 +641,6 @@ done
 # will result in a link-time failure to find the libraries, hinting that
 # something is wrong.
 
-echo "Deleting root multilibs..."
-$SUDO rm "$DESTDIR$PREFIX/i686-miosix-elf/lib"/*.specs
-$SUDO rm "$DESTDIR$PREFIX/i686-miosix-elf/lib"/*.o
-$SUDO rm "$DESTDIR$PREFIX/i686-miosix-elf/lib"/*.a
-$SUDO rm "$DESTDIR$PREFIX/i686-miosix-elf/lib"/*.ld
-$SUDO rm -rf "$DESTDIR$PREFIX/i686-miosix-elf/lib/cpu-init"
-$SUDO rm "$DESTDIR$PREFIX/lib/gcc/i686-miosix-elf/15.2.0"/*.o
-$SUDO rm "$DESTDIR$PREFIX/lib/gcc/i686-miosix-elf/15.2.0"/*.a
 
 # 8B: check that all multilibs have been built.
 # This check has been added after an attempt to build i686-miosix-elf-gcc on Fedora
@@ -678,7 +670,6 @@ check_multilibs() {
     quit "::Error, $1/libsupc++.a not installed"
   fi
 }
-
 #
 # Part 9: compile and install gdb
 #
