@@ -49,7 +49,8 @@ inline void markBufferAfterDmaRead(void *buffer, int size) {
 }
 
 inline void IRQenableCache() {
-  // Cache is enabled and disabled by setting the CD bit of CR0 on boot
+  // Cache is enabled by default and disabled by setting the CD bit of CR0 on
+  // boot
 }
 
 } // namespace miosix

@@ -10,5 +10,5 @@ namespace miosix {
  * kernel-level W^X and cacheability (if caches are present).
  */
 
-void IRQenableMMU();
+void IRQenableMPU();
 } // namespace miosix

@@ -77,13 +77,13 @@ union IORedirectionEntry {
 
   uint64_t raw; // used only to zeroing the register when initializing
 };
-static void initIOAPIC();
+void initIOAPIC();
 
 // enable an HW IRQ and connects it to an IDT entry. the apic_id is the id of
 // the apic to which send the interrupt and 0 is the default core
-static void enableIrqIOAPIC(uint8_t irq, uint8_t vector, uint8_t apic_id = 0);
+void enableIrqIOAPIC(uint8_t irq, uint8_t vector, uint8_t apic_id = 0);
 
 // enable or disable a specific IRQ. if masked is disabled
-static void setMaskIOAPIC(uint8_t irq, bool masked);
+void setMaskIOAPIC(uint8_t irq, bool masked);
 
 } // namespace miosix

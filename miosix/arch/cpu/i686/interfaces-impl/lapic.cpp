@@ -30,11 +30,13 @@ static inline void wrmsr(uint32_t msr, uint64_t value) {
 // Helper functions for pit and pic
 static inline uint8_t inb(uint16_t port) {
   uint8_t ret;
-  asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+  // w i used to indicate that we want 16 bit register, as the PIT is 16 bit. N
+  // is forn number 0-255 and d is for dx register
+  asm volatile("inb %w1, %0" : "=a"(ret) : "Nd"(port));
   return ret;
 }
 static inline void outb(uint16_t port, uint8_t val) {
-  asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
+  asm volatile("outb %b0, %w1" : : "a"(val), "Nd"(port));
 }
 
 static void PITPrepareSleep(uint32_t microseconds) {

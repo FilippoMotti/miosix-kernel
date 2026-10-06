@@ -1,5 +1,6 @@
 #pragma once
 #include "stdint.h"
+namespace miosix {
 
 // DO NOT modify this order, as this mimic the actual order of the entry
 //------------------------------------------------------|
@@ -66,3 +67,4 @@ void setGDTGate(
     uint32_t num, uint32_t base, uint32_t limit, uint8_t access,
     uint8_t gran); // altough limit is 20 bits, we don't have a uint20_t
 void writeTSS(uint32_t num, uint16_t ss0, uint32_t esp0);
+} // namespace miosix

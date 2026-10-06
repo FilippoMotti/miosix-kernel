@@ -33,7 +33,7 @@
 namespace miosix {
 
 inline int atomicSwap(volatile int *p, int v) {
-  asm volatile("xchg [%1], %0" : "+r"(v) : "r"(p) : "memory");
+  asm volatile("xchgl %0, (%1)" : "+r"(v) : "r"(p) : "memory");
   return v;
 }
 
@@ -41,15 +41,14 @@ inline void atomicAdd(volatile int *p, int incr) {
   // cc is necessary here because the add might have altered the CPU flags
   // Also lock is necessary to signal the LOCK in the bus, which prevents any
   // other processor in the system from accessing the memory at the same time
-  asm volatile("lock add dword ptr [%0], %1" ::"r"(p), "r"(incr)
-               : "memory", "cc");
+  asm volatile("lock addl %1, (%0)" ::"r"(p), "r"(incr) : "memory", "cc");
 }
 
 inline int atomicAddExchange(volatile int *p, int incr) {
   // cc is necessary here because the add might have altered the CPU flags
   // Also lock is necessary to signal the LOCK in the bus, which prevents any
   // other processor in the system from accessing the memory at the same time
-  asm volatile("lock xadd [%1], %0" : "+r"(incr) : "r"(p) : "memory", "cc");
+  asm volatile("lock xaddl %0, (%1)" : "+r"(incr) : "r"(p) : "memory", "cc");
   return incr;
 }
 
@@ -58,7 +57,7 @@ inline int atomicCompareAndSwap(volatile int *p, int prev, int next) {
   // Also lock is necessary to signal the LOCK in the bus, which prevents any
   // other processor in the system from accessing the memory at the same time
   int result;
-  asm volatile("lock cmpxchg [%1], %2"
+  asm volatile("lock cmpxchgl %2, (%1)"
                : "=a"(result)
                : "r"(p), "r"(next), "a"(prev)
                : "memory", "cc");

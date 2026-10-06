@@ -37,6 +37,6 @@ namespace miosix {
 // #TODO: for now we just use an empty function, to be reevaluated when we
 // decide how and where to implement the GDT
 // Also when we implement userspace we have to enable paging.
-void IRQenableMMU() {};
+void IRQenableMPU() {};
 
 } // namespace miosix

@@ -59,9 +59,11 @@ inline bool areInterruptsEnabled() noexcept {
   unsigned int eflags;
   // Push all the flags into the stack and then pop into a variable in order to
   // read it
-  asm volatile("pushf     \n\t"
-               "pop %0    \n\t"
-               : "=rm"(eflags)::"memory");
+  asm volatile("pushfl    \n\t"
+               "popl %0   \n\t"
+               : "=r"(eflags)
+               :
+               : "memory");
   // Bitwise AND with only bit 9 to check if the Interrupt Flag is active.
   return (eflags & 0x0200) != 0;
 }
