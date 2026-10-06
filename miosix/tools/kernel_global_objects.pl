@@ -46,7 +46,7 @@ my @files_to_fix;
 my @files_broken;
 
 GetOptions(
-    "prefix=s" => \( my $prefix = "arm-miosix-eabi")
+    "prefix=s" => \( my $prefix = "i686-miosix-elf")
 );
 
 # Step #1: check all kernel object files and categorize them based on the
@@ -75,7 +75,7 @@ foreach my $idx (0 .. $#ARGV)
 		# This is the section that the C++ compiler uses and need to be fixed.
 		# Note: we dont care about .fini_array, as the kernel does not call
 		# finalizers on reboot
-		if($section_name=~/^\.init_array/)
+		if($section_name=~/^\.init_array/ || $section_name=~/^\.ctors/)
 		{
 			push(@files_to_fix,$filename);
 			push(@files_with_global_objects,"$filename (.init_array)");
@@ -89,7 +89,7 @@ foreach my $idx (0 .. $#ARGV)
 		# been observed in the wild with the current ABI miosix is using,
 		# so for now, to be on the safe side, we will fail compiling if they
 		# are found. Probably it is enough to transform their name as well.
-		if($section_name=~/^\.preinit_array|^\.ctors|^\.dtors|^\.init |^\.fini /)
+		if($section_name=~/^\.preinit_array|^\.dtors|^\.init |^\.fini /)
 		{
 			push(@files_broken,$filename);
 		}
@@ -105,7 +105,7 @@ foreach my $idx (0 .. $#ARGV)
 # started, not after
 foreach my $filename (@files_to_fix)
 {
-	my $exitcode=system("$prefix-objcopy \"$filename\" --rename-section .init_array=.miosix_init_array");
+	my $exitcode=system("$prefix-objcopy \"$filename\" --rename-section .init_array=.miosix_init_array --rename-section .ctors=.miosix_init_array");
 	die "Error calling objcopy" unless($exitcode==0);
 }
 

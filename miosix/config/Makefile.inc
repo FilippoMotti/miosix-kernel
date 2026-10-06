@@ -67,6 +67,8 @@
 #OPT_BOARD := stm32u535cb_rrc
 #OPT_BOARD := stm32u585ci_generic
 
+OPT_BOARD := i686_qemu
+
 ##
 ## Optimization flags, choose one.
 ## -O0 produces large and slow code, but is useful for in circuit debugging.
