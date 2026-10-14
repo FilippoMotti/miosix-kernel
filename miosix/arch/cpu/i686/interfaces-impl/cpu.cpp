@@ -50,13 +50,19 @@ void initKernelThreadCtxsave(unsigned int *ctxsave,
   // Setting for the iret function (SS and ESP are not needed since we are still
   // in ring 0)
   stackPtr--;
-  *stackPtr = 0x00000200; // EFLAGS (IF bit set to 1)
+  *stackPtr = 0x00000202; // EFLAGS (IF bit set to 1)
   stackPtr--;
   *stackPtr = 0x00000008; // CS (GDT set for kernel code)
   stackPtr--;
   *stackPtr = reinterpret_cast<unsigned int>(pc); //--> pc/EIP
 
-  ctxsave[0] = reinterpret_cast<unsigned int>(stackPtr); //--> esp
+  // Settign all registers to 0 since it is for a new thread. This is needed
+  // because the restore context as first thing pop all registers
+  for (int i = 0; i < 8; i++) {
+    stackPtr--;
+    *stackPtr = 0;
+  }
+  ctxsave[0] = reinterpret_cast<unsigned int>(stackPtr);
 }
 
 void IRQportableStartKernel() noexcept {

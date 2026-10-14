@@ -70,9 +70,9 @@ const unsigned char CTXSAVE_SIZE = 1;
 
 /// \internal Size of additional context saved on the stack during context
 /// switch. On the stack we save EFLAGS, CS, EIP, EAX, ECX, EDX, EBX, ESP, EBP,
-/// ESI, EDI at max, each one is 4 bytes (SS and ESP do not count as we are
-/// still in ring 0)
-const unsigned int CTXSAVE_ON_STACK = 44;
+/// ESI, EDI, then we save return address and 2 arguments , each one is 4 bytes
+/// (SS and ESP do not count as we are still in ring 0)
+const unsigned int CTXSAVE_ON_STACK = 56;
 
 #endif //__FPU_PRESENT==1
 

@@ -7,7 +7,7 @@ namespace miosix {
 extern void GDTLoad(uint32_t);
 extern void TSSLoad();
 
-struct GDTEntryStruct GDTEntries[6];
+struct GDTEntryStruct GDTEntries[7];
 struct GDTPointerStruct GDTPointer;
 struct TSSEntryStruct TSSEntry;
 
@@ -42,7 +42,7 @@ void writeTSS(uint32_t num, uint16_t ss0, uint32_t esp0) {
 
 void initGDT() {
   // sub 1 is to use the right offset for memory
-  GDTPointer.limit = (sizeof(struct GDTEntryStruct) * 6) - 1;
+  GDTPointer.limit = (sizeof(struct GDTEntryStruct) * 7) - 1;
   GDTPointer.base = reinterpret_cast<uint32_t>(&GDTEntries);
 
   setGDTGate(0, 0, 0, 0, 0);              // Null segment

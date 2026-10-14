@@ -28,29 +28,49 @@
 #pragma once
 
 #include "interfaces/arch_registers.h"
+#include "lapic.h"
 
 #ifndef __FPU_PRESENT
 #define __FPU_PRESENT 0 //__FPU_PRESENT undefined means no FPU
 #endif
 /*
- * In this architecture (i686), only ESP is saved when context switching, the
- * rest is pushed onto the stack
+ * In this architecture (i686), we push all general registers on the stack
  * *ctxsave+0  --> esp
+ *
+ * Also when we do a pushal the registers are saved in this order
+ * esp+28  --> eax
+ * esp+24  --> ecx
+ * esp+20  --> edx
+ * esp+16  --> ebx
+ * esp+12  --> esp
+ * esp+8   --> ebp
+ * esp+4   --> esi
+ * esp+0   --> edi
+ *
+ * also under esp we have eip, cs and eflags that are saved by hardware
  */
 
+#define saveContext()                                                          \
+  asm volatile(                                                                \
+      "pushal                  \n\t" /*eax,ecx,edx,ebx,esp,ebp,esi,edi*/       \
+      "mov  ctxsave, %eax      \n\t" /*current context*/                       \
+      "mov  %esp, (%eax)       \n\t" /*save sp in context*/                    \
+  );
 /**
  * \internal
  * on i686 the scheduler is triggered by calling the interrupt relative to the
  * yield scheduler function in the IDT
  */
 
+#define restoreContext()                                                       \
+  asm volatile("mov  ctxsave, %eax      \n\t" /*new context*/                  \
+               "mov  (%eax), %esp       \n\t" /*restore esp*/                  \
+               "popal                   \n\t"                                  \
+               "iret                    \n\t" /*pop eip,cs,eflags*/            \
+  );
 namespace miosix {
 
-inline void IRQinvokeScheduler() noexcept {
-  // 0x80 is defined for now as the yield scheduler in the IDT (the be updated
-  // whith the new implementation of the IDT)
-  asm volatile("int $0x80" ::: "memory");
-}
+inline void IRQinvokeScheduler() noexcept { setSchedulerInterruptPending(); }
 
 } // namespace miosix
 
