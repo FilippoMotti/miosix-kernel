@@ -1,7 +1,9 @@
 #pragma once
 #include "idt.h"
+#include "interrupts.h"
+#include "lapic.h"
 #include "string.h"
-#include <cstddef>
+#include <cstdint>
 
 namespace miosix {
 
@@ -77,6 +79,10 @@ void initIDT() {
   setIDTGate(46, (uint32_t)irq14, 0x08, 0x8E);
   setIDTGate(47, (uint32_t)irq15, 0x08, 0x8E);
 
+  // interrupt for calling the scheduler
+  setIDTGate(48, (uint32_t)PendSV_Handler, 0x08, 0x8E);
+  setIDTGate(49, (uint32_t)irq17, 0x08, 0x8E);
+
   loadIDT((uint32_t)&IDTPointer); // Loads the IDT and fills it with the CPU
                                   // excpetions and IRQs
 }
@@ -99,13 +105,5 @@ void isrHandler(struct InterruptRegisters *regs) {
   }
 }
 }
-void (*irqRoutines[16])(InterruptRegisters *) = {
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-
-void irqInstallHandler(int irq, void (*handler)(struct InterruptRegisters *r)) {
-  irqRoutines[irq] = handler;
-}
-void irqUninstallHandler(int irq) { irqRoutines[irq] = nullptr; }
 
 } // namespace miosix

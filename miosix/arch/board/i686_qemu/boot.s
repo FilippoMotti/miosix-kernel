@@ -22,6 +22,7 @@ stack_top:
 .global _start
 .type _start, @function
 _start:
+    cli # Miosix want interrupts deactivated at start
     mov $stack_top, %esp
     call kernel_main
     cli

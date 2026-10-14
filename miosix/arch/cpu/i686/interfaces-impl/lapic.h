@@ -14,7 +14,7 @@ namespace miosix {
 // did this to avoid having every reg followed by padding in the big struct
 typedef struct {
   volatile uint32_t reg;
-  uint32_t padding[3];
+  volatile uint32_t padding[3];
 } apic_reg_t;
 
 // DO NOT modify this order, as this mimic the actual order of the entry
@@ -54,11 +54,19 @@ typedef struct {
 
 // Initialize local apic and diables pic
 void initLAPIC();
-
+uint32_t APICGetID();
+// extern "C" so it can be called from assembly when context switch (function
+// naked)
+extern "C" {
 void sendEOI();
+}
+void initLAPICTimerPIT(uint32_t timer_interrupt_vector);
 
-uint32_t getIdCore();
+void initLAPICTimerHPET(uint32_t timer_interrupt_vector);
 
-void initLAPICTimer(uint32_t timer_interrupt_vector);
+void setSchedulerInterruptPending();
 
+void APICSendIPI(uint32_t apicId, uint32_t vector);
+
+void APICTimerSetPreemption(unsigned int ns);
 } // namespace miosix

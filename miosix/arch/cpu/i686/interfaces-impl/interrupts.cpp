@@ -81,7 +81,7 @@ struct IrqForwardingEntry {
 static IrqForwardingEntry irqForwardingTable[numInterrupts];
 
 //
-void irqHandler(struct InterruptRegisters *regs) {
+extern "C" void irqHandler(struct InterruptRegisters *regs) {
   if (regs->int_no >= 32 and regs->int_no < 256) {
     uint32_t id = regs->int_no - 32;
 
@@ -103,10 +103,12 @@ void IRQinitIrqTable() noexcept {
 
   initIDT();
 
+  for (unsigned int i = 0; i < numInterrupts; i++) {
+    irqForwardingTable[i].handler = &unexpectedInterrupt;
+  }
+
   // Turn off PIC and activate Lapic
   initLAPIC();
-  // LAPIC timer should be on IRQ0 aka vector 32
-  initLAPICTimer(32);
 
   // Initialize IO APIC
   initIOAPIC();
@@ -119,14 +121,7 @@ inline void IRQregisterIrqImpl(unsigned int id, void (*handler)(void *),
     errorHandler(Error::INTERRUPT_REGISTRATION_ERROR);
   irqForwardingTable[id].handler = handler;
   irqForwardingTable[id].arg = arg;
-
-  // send the IRQ to core correct core
-  // also remember that irqs starts from number 32
-  uint8_t vector = id + 32;
-  enableIrqIOAPIC(id, vector, getIdCore());
-  setMaskIOAPIC(id, false);
 }
-
 inline void IRQunregisterIrqImpl(unsigned int id, void (*handler)(void *),
                                  void *arg) noexcept {
   if (id >= numInterrupts || irqForwardingTable[id].handler != handler ||
@@ -139,6 +134,41 @@ inline void IRQunregisterIrqImpl(unsigned int id, void (*handler)(void *),
   setMaskIOAPIC(id, true);
 }
 
+void __attribute__((naked)) PendSV_Handler() {
+  // In Miosix 3.0, a context switch is possible only from this interrupt,
+  // unless processes are enabled in which case also fault handlers and the SVC
+  // handler can do so. If there is the need to perform a context switch
+  // from within another interrupt, such as if a peripheral driver interrupt
+  // has woken up a thread whose priority is higher than the one that was
+  // running when the interrupt occurred, the interrupt must call
+  // IRQinvokeScheduler which causes the PendSV interrupt (this interrupt) to
+  // become pending. When the peripheral interrupt complets, the PendSV
+  // interrupt is run calling the scheduler and performing the constext switch.
+  // Note that just like in Miosix 2.x, in order to perform a context switch we
+  // need to override the compiler generated function prologue and epilogue
+  // as we need to save the entire CPU context with our OS-specific code.
+  // To do so, we mark the function naked. As naked function can only contain
+  // assembly code, we save and restore the context with the saveContext and
+  // restoreContext macros written in assembly, and call the actual interrupt
+  // implementation which is written in C++ in the function pendsvImpl().
+  // Since we are forced to perform the function call in assembly, we need to
+  // call the C++ mangled name of pendsvImpl()
+  saveContext();
+// We would like to call Scheduler::IRQrunScheduler() which will select
+// at compile-time which scheduler to run, but this can't be done froma naked
+// function and we're trying to avoid to call an intermediate C++ function
+#if defined(SCHED_TYPE_PRIORITY)
+  asm volatile("call _ZN6miosix17PriorityScheduler15IRQrunSchedulerEv");
+#elif defined(SCHED_TYPE_CONTROL_BASED)
+  asm volatile("call _ZN6miosix16ControlScheduler15IRQrunSchedulerEv");
+#elif defined(SCHED_TYPE_EDF)
+  asm volatile("call _ZN6miosix12EDFScheduler15IRQrunSchedulerEv");
+#else
+#error No scheduler selected in miosix_settings.h
+#endif
+  asm volatile("call sendEOI");
+  restoreContext();
+}
 #ifdef WITH_SMP
 
 void IRQregisterIrqOnCurrentCore(unsigned int id, void (*handler)(void *),

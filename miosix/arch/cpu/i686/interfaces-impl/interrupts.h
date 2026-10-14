@@ -53,5 +53,5 @@ void IRQunregisterIrqOnCurrentCore(unsigned int id, void (*handler)(void *),
                                    void *arg) noexcept;
 
 #endif // WITH_SMP
-
+void __attribute__((naked)) PendSV_Handler();
 } // namespace miosix

@@ -1,5 +1,7 @@
 // lapic.cpp
 #include "lapic.h"
+#include "hpet.h"
+#include "kernel/timeconversion.h"
 
 namespace miosix {
 #define IA32_APIC_BASE_MSR 0x1B
@@ -10,7 +12,9 @@ namespace miosix {
 
 // Address of the LAPIC
 static volatile localAPICStruct *lapic = nullptr;
-
+uint32_t ticks_1ms;
+static CoarseTimeConversion ctc;
+int timer_vector;
 static inline uint64_t rdmsr(uint32_t msr) {
   uint32_t lo;
   uint32_t hi;
@@ -68,6 +72,17 @@ static void PITPerformSleep() {
   outb(0x61, port61 & 0xFC);
 }
 
+void setSchedulerInterruptPending() {
+  // ICR low: idt number 48| fixed(000) | level assert (bit 14) |
+  // (01<<18) (this because we want to send the interrupt to itself)
+  lapic->icr_low.reg = (1 << 18) | (1 << 14) | 48;
+}
+
+void APICSendIPI(uint32_t apicId, uint32_t vector) {
+  lapic->icr_high.reg = apicId << 24;
+  lapic->icr_low.reg = (1 << 14) | vector;
+}
+
 void initLAPIC() {
   // Turn off PIC
   outb(0x21, 0xFF); // Master
@@ -92,13 +107,16 @@ void initLAPIC() {
   lapic->sivr.reg = 0x100 | 0xFF;
 }
 
+uint32_t APICGetID() { return lapic->id.reg; }
+
+extern "C" {
 void sendEOI() {
   // Write 0 in the EOI registers to let the APIC resume sending interrupts to
   // the processors
   lapic->eoi.reg = 0;
 }
-
-void initLAPICTimer(uint32_t timer_interrupt_vector) {
+}
+void initLAPICTimerPIT(uint32_t timer_interrupt_vector) {
 
   if (!lapic)
     return;
@@ -127,6 +145,45 @@ void initLAPICTimer(uint32_t timer_interrupt_vector) {
 
   lapic->timer_divide.reg = 0x03;
   lapic->timer_initial.reg = ticks_1ms;
+
+  timer_vector = timer_interrupt_vector;
+}
+
+void initLAPICTimerHPET(uint32_t timer_interrupt_vector) {
+  if (!lapic)
+    return;
+  asm volatile("cli");
+
+  // Tell APIC timer to use divider 16
+  lapic->timer_divide.reg = 0x3;
+  lapic->timer_initial.reg = 0xFFFFFFFF;
+  // Read current hpet timer values, then wait for 10 ms
+  unsigned long long t0 = HPETRead();
+  // HPET uses femtoseconds, 10^15
+  unsigned long long wait = 10000000000000ULL / HPETgetPeriod(); // 10 ms
+  while (HPETRead() - t0 < wait) {
+  }
+
+  // Now we know how often the APIC timer has ticked in 10ms
+  uint32_t ticksIn10ms = 0xFFFFFFFF - lapic->timer_current.reg;
+
+  uint32_t ticks_1ms = ticksIn10ms / 10;
+
+  // Start timer as one-shot on requested vector, divider 16, with 1ms ticks
+
+  lapic->lvt_timer.reg = timer_interrupt_vector;
+
+  lapic->timer_divide.reg = 0x03;
+  lapic->timer_initial.reg = ticks_1ms;
+  ctc = CoarseTimeConversion(ticksIn10ms * 1000 / wait);
+  timer_vector = timer_interrupt_vector;
+}
+void APICTimerSetPreemption(unsigned int ns) {
+  unsigned int ticks = ctc.ns2tick(ns);
+  if (ticks == 0)
+    ticks = 1;
+  lapic->lvt_timer.reg = timer_vector;
+  lapic->timer_initial.reg = ticks;
 }
 
 } // namespace miosix

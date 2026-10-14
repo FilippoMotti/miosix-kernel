@@ -5,7 +5,6 @@
 loadIDT:
     movl 4(%esp), %eax
     lidt (%eax)
-    sti
     ret
 
 .macro ISR_NOERRCODE num
@@ -69,7 +68,7 @@ ISR_ERRCODE   30    # Security Exception
 ISR_NOERRCODE 31    # Reserved
 
 # Standard ISA IRQ
-IRQ 0, 32           # PIT
+IRQ 0, 32           # PIT (for us lapic timer)
 IRQ 1, 33           # Keyboard
 IRQ 2, 34           # Cascade
 IRQ 3, 35           # COM2
@@ -85,6 +84,9 @@ IRQ 12, 44          # PS/2 Mouse
 IRQ 13, 45          # FPU
 IRQ 14, 46          # Primary ATA
 IRQ 15, 47          # Secondary ATA
+
+#IRQ 16 is PendSV_Handler, which has its own handler
+IRQ 17, 49          # HPETHandler
 
 .extern isrHandler
 isrCommonStub:
@@ -115,7 +117,6 @@ isrCommonStub:
 
     popal
     addl $8, %esp
-    sti
     iretl
 
 .extern irqHandler
@@ -144,5 +145,4 @@ irqCommonStub:
 
     popal
     addl $8, %esp
-    sti
     iretl

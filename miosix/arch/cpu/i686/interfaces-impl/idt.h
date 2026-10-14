@@ -56,15 +56,11 @@ struct InterruptRegisters {
 void initIDT();
 void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector, uint8_t flags);
 
-void irqInstallHandler(int irq, void (*handler)(struct InterruptRegisters *r));
-void irqUninstallHandler(int irq);
-
 extern "C" {
 
 void loadIDT(uint32_t);
 
 void isrHandler(struct InterruptRegisters *regs);
-void irqHandler(struct InterruptRegisters *regs);
 
 void isr0();
 void isr1();
@@ -113,7 +109,9 @@ void irq10();
 void irq11();
 void irq12();
 void irq13();
+void irq13();
 void irq14();
 void irq15();
+void irq17();
 }
 } // namespace miosix
