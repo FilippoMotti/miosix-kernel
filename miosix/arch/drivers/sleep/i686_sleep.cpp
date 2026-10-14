@@ -25,14 +25,16 @@
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 
-#include "interfaces_private/sleep.h"
 #include "interfaces/arch_registers.h"
+#include "interfaces_private/sleep.h"
 
 namespace miosix {
 
-void sleepCpu()
-{
-    //__WFI();
+void sleepCpu() {
+  // We need to sleep, but hlt works only when interrupts are active, otherwise
+  // it will not resume. since this function is called when interrupts are
+  // disabled we need to disable them again after we wake up
+  asm volatile("sti; hlt; cli" ::: "memory");
 }
 
-} //namespace miosix
+} // namespace miosix
