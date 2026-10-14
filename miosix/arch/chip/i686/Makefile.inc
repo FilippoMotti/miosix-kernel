@@ -19,6 +19,7 @@ $(CPU_INC)/interfaces-impl/idt_asm.s				   \
 $(CPU_INC)/interfaces-impl/cache.cpp				   \
 $(CPU_INC)/interfaces-impl/cpu.cpp				   \
 $(CPU_INC)/interfaces-impl/gdt.cpp				   \
+$(CPU_INC)/interfaces-impl/hpet.cpp				   \
 $(CPU_INC)/interfaces-impl/idt.cpp				   \
 $(CPU_INC)/interfaces-impl/interrupts.cpp			   \
 $(CPU_INC)/interfaces-impl/ioapic.cpp				   \
