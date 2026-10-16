@@ -24,22 +24,26 @@
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
- ***************************************************************************/ 
+ ***************************************************************************/
 
 /***********************************************************************
-* bsp.cpp Part of the Miosix Embedded OS.
-* Board support package, this file initializes hardware.
-************************************************************************/
+ * bsp.cpp Part of the Miosix Embedded OS.
+ * Board support package, this file initializes hardware.
+ ************************************************************************/
 
-#include <cstdlib>
-#include <inttypes.h>
-#include <sys/ioctl.h>
-#include "interfaces_private/bsp_private.h"
-#include "interfaces/poweroff.h"
-#include "filesystem/file_access.h"
-#include "interfaces/serial.h"
-#include "drivers/dcc.h"
+#include "interfaces/bsp.h"
 #include "board_settings.h"
+#include "filesystem/console/console_device.h"
+#include "filesystem/file_access.h"
+#include "interfaces/arch_registers.h"
+#include "interfaces/delays.h"
+#include "interfaces/gpio.h"
+#include "interfaces/poweroff.h"
+#include "interfaces/serial.h"
+#include "interfaces_private/bsp_private.h"
+#include "miosix_settings.h"
+#include <cstdlib>
+#include <sys/ioctl.h>
 
 namespace miosix {
 
@@ -47,44 +51,34 @@ namespace miosix {
 // Initialization
 //
 
-void IRQbspInit()
-{/*
-    SystemCoreClockUpdate();
-    //Enable all gpios
-    RCC->AHB2ENR1 |= RCC_AHB2ENR1_GPIOAEN | RCC_AHB2ENR1_GPIOBEN |
-                    RCC_AHB2ENR1_GPIOCEN | RCC_AHB2ENR1_GPIODEN |
-                    RCC_AHB2ENR1_GPIOHEN;
+void IRQbspInit() {
+  // SystemCoreClockUpdate();
+  /*
+      //Enable all gpios
+      RCC->AHB2ENR1 |= RCC_AHB2ENR1_GPIOAEN | RCC_AHB2ENR1_GPIOBEN |
+                      RCC_AHB2ENR1_GPIOCEN | RCC_AHB2ENR1_GPIODEN |
+                      RCC_AHB2ENR1_GPIOHEN;
 
-    RCC->AHB2ENR1 |= RCC_AHB2ENR1_SRAM2EN
-                  | RCC_AHB2ENR1_SRAM3EN;
+      RCC->AHB2ENR1 |= RCC_AHB2ENR1_SRAM2EN
+                    | RCC_AHB2ENR1_SRAM3EN;
 
-    RCC->APB3ENR  |= RCC_APB3ENR_SYSCFGEN;
+      RCC->APB3ENR  |= RCC_APB3ENR_SYSCFGEN;
 
-    RCC_SYNC();
-    GPIOA->OSPEEDR=0xaaaaaaaa; //Default to 50MHz speed for all GPIOS
-    GPIOB->OSPEEDR=0xaaaaaaaa;
-    GPIOC->OSPEEDR=0xaaaaaaaa;
-    GPIOD->OSPEEDR=0xaaaaaaaa;
+      RCC_SYNC();
+      GPIOA->OSPEEDR=0xaaaaaaaa; //Default to 50MHz speed for all GPIOS
+      GPIOB->OSPEEDR=0xaaaaaaaa;
+      GPIOC->OSPEEDR=0xaaaaaaaa;
+      GPIOD->OSPEEDR=0xaaaaaaaa;*/
 
-    // Initialize default serial
-    IRQsetDefaultConsole(intrusive_ref_ptr<Device>(
-    #ifndef STDOUT_REDIRECTED_TO_DCC
-        STM32SerialBase::get<defaultSerialTxPin, defaultSerialRxPin,
-                             defaultSerialRtsPin, defaultSerialCtsPin>(
-            defaultSerial, defaultSerialSpeed, defaultSerialFlowctrl,
-            defaultSerialDma)
-    #else //STDOUT_REDIRECTED_TO_DCC
-        new ARMDCC
-    #endif //STDOUT_REDIRECTED_TO_DCC
-            ));
-            */
+  // Initialize default serial
+  IRQsetDefaultConsole(intrusive_ref_ptr<Device>(
+      new I686Serial(defaultSerial, defaultSerialSpeed)));
 }
 
-void bspInit2()
-{/*
-    #ifdef WITH_FILESYSTEM
-    basicFilesystemSetup(intrusive_ref_ptr<Device>());
-    #endif //WITH_FILESYSTEM*/
+void bspInit2() {
+#ifdef WITH_FILESYSTEM
+  basicFilesystemSetup(intrusive_ref_ptr<Device>());
+#endif // WITH_FILESYSTEM
 }
 
 //
@@ -100,32 +94,31 @@ WARNING: close all files before using this function, since it unmounts the
 filesystem.<br>
 When in shutdown mode, power consumption of the miosix board is reduced to ~
 5uA??, however, true power consumption depends on what is connected to the GPIO
-pins. The user is responsible to put the devices connected to the GPIO pin in the
-minimal power consumption mode before calling shutdown(). Please note that to
-minimize power consumption all unused GPIO must not be left floating.
+pins. The user is responsible to put the devices connected to the GPIO pin in
+the minimal power consumption mode before calling shutdown(). Please note that
+to minimize power consumption all unused GPIO must not be left floating.
 */
-void shutdown()
-{/*
-    ioctl(STDOUT_FILENO,IOCTL_SYNC,0);
+void shutdown() {
+  ioctl(STDOUT_FILENO, IOCTL_SYNC, 0);
 
-    #ifdef WITH_FILESYSTEM
-    FilesystemManager::instance().umountAll();
-    #endif //WITH_FILESYSTEM
+#ifdef WITH_FILESYSTEM
+  FilesystemManager::instance().umountAll();
+#endif // WITH_FILESYSTEM
 
-    FastGlobalIrqLock::lock();
-    for(;;) ;*/
+  FastGlobalIrqLock::lock();
+  for (;;)
+    ;
 }
 
-void reboot()
-{/*
-    ioctl(STDOUT_FILENO,IOCTL_SYNC,0);
-    
-    #ifdef WITH_FILESYSTEM
-    FilesystemManager::instance().umountAll();
-    #endif //WITH_FILESYSTEM
+void reboot() {
+  ioctl(STDOUT_FILENO, IOCTL_SYNC, 0);
 
-    FastGlobalIrqLock::lock();
-    IRQsystemReboot();*/
+#ifdef WITH_FILESYSTEM
+  FilesystemManager::instance().umountAll();
+#endif // WITH_FILESYSTEM
+
+  FastGlobalIrqLock::lock();
+  IRQsystemReboot();
 }
 
-};//namespace miosix
+}; // namespace miosix

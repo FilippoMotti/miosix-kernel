@@ -28,3 +28,4 @@ templates/simple/.gdb_history
 templates/simple/main.cpp
 templates/simple/Makefile
 templates/simple/qemu.log
+miosix/.gdb_history

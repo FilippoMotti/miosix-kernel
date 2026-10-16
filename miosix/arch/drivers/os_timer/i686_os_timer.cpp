@@ -143,7 +143,7 @@ void IRQosTimerInit() {
   // Setting the link between hpet and idt through ioapic
   enableIrqIOAPIC(pin, HPET_IRQ, apicID);
   setMaskIOAPIC(pin, false);
-  IRQregisterIrq(lock, 0, IRQTimerInterruptHandler, nullptr);
+  IRQregisterIrq(lock, LAPIC_TIMER_IRQ - 32, IRQTimerInterruptHandler, nullptr);
 
   HPETEnableComparator(0, pin);
   // LAPIC timer should be on IRQ0 aka vector 32

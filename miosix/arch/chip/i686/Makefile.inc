@@ -28,6 +28,7 @@ $(CPU_INC)/interfaces-impl/mmu.cpp				   \
 $(CPU_INC)/interfaces-impl/userspace.cpp			   \
 arch/drivers/os_timer/i686_os_timer.cpp				  \
 arch/drivers/gpio/i686_gpio.cpp					 \
+arch/drivers/serial/i686_serial.cpp					 \
 arch/drivers/sleep/i686_sleep.cpp                    \
 $(CHIP_INC)/interfaces-impl/delays.cpp                   \
 $(CHIP_INC)/interfaces-impl/poweroff.cpp

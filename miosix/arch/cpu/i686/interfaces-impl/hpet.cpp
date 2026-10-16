@@ -19,7 +19,8 @@ unsigned long long HPETRead() {
     lo = hpet->counter.lo;
     hi2 = hpet->counter.hi;
   } while (hi != hi2);
-  return (static_cast<unsigned long long>(hi) << 32) | lo;
+  unsigned long long res = (static_cast<unsigned long long>(hi) << 32) | lo;
+  return res;
 }
 
 unsigned int HPETgetPeriod() { return periodFs; }
