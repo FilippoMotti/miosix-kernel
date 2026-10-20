@@ -95,7 +95,7 @@ private:
   void waitTxEmpty();
 
   const unsigned short base; // Base address of the port
-  static const unsigned int rxQueueMin = 16;
+  static const unsigned int rxQueueMin = 1;
   const unsigned int irqn; ///< Interrupt number
   const unsigned char portId;
   KernelMutex txMutex; ///< Mutex locked during transmission

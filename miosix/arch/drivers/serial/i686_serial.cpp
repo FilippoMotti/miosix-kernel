@@ -179,7 +179,7 @@ void I686Serial::IRQhandleInterrupt() noexcept {
     if (iir & 1)
       break; // No more interrupts pending
     // check if timeout interrupt pending before a read can clear it
-    bool timeout = ((iir >> 3 & 1) == 0);
+    bool timeout = iir >> 3 & 1;
     // checking bit 1-2
     // this is following priority order from highest to lower
     switch ((iir >> 1) & 0x3) {
