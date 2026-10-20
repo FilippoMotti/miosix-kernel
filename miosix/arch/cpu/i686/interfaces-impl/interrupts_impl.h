@@ -52,18 +52,16 @@ inline void fastDisableIrq() noexcept {
 inline void fastEnableIrq() noexcept {
   // Since this function is inline there's the need for a memory barrier to
   // avoid aggressive reordering
-  asm volatile("sti" ::: "memory");
+  asm volatile("sti;nop" ::: "memory");
 }
 
 inline bool areInterruptsEnabled() noexcept {
   unsigned int eflags;
   // Push all the flags into the stack and then pop into a variable in order to
   // read it
-  asm volatile("pushfl    \n\t"
-               "popl %0   \n\t"
-               : "=r"(eflags)
-               :
-               : "memory");
+  asm volatile("pushf     \n\t"
+               "pop %0    \n\t"
+               : "=rm"(eflags)::"memory");
   // Bitwise AND with only bit 9 to check if the Interrupt Flag is active.
   return (eflags & 0x0200) != 0;
 }
