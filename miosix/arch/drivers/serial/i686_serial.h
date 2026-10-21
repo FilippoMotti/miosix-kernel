@@ -97,9 +97,8 @@ private:
   const unsigned short base; // Base address of the port
   static const unsigned int rxQueueMin = 1;
   const unsigned int irqn; ///< Interrupt number
-  const unsigned char portId;
-  KernelMutex txMutex; ///< Mutex locked during transmission
-  KernelMutex rxMutex; ///< Mutex locked during reception
+  KernelMutex txMutex;     ///< Mutex locked during transmission
+  KernelMutex rxMutex;     ///< Mutex locked during reception
   /// Semaphore flagged when the hardware TX FIFO is ready to receive bytes
   Semaphore txLowWaterFlag;
   /// Software queue used for buffering bytes from the hardware RX FIFO

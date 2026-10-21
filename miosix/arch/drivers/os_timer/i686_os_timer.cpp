@@ -234,4 +234,17 @@ void IRQosTimerSetPreemption(unsigned int ns) noexcept {
   APICTimerSetPreemption(ns);
 }
 
+void delayMs(unsigned int mseconds) {
+  for (unsigned int i = 0; i < mseconds; i++)
+    delayUs(1000);
+}
+
+void delayUs(unsigned int useconds) {
+  unsigned long long ticks =
+      (static_cast<unsigned long long>(useconds) * 1000000000ULL) / periodFs;
+  unsigned long long start = HPETRead();
+  while (HPETRead() - start < ticks)
+    asm volatile("pause" ::: "memory");
+}
+
 } // namespace miosix

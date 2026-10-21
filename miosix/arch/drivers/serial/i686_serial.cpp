@@ -3,6 +3,7 @@
 #include "arch/cpu/i686/interfaces-impl/lapic.h"
 #include "filesystem/ioctl.h"
 #include "interfaces/interrupts.h"
+#include "kernel/logging.h"
 #include "kernel/sync.h"
 #include <cstring>
 #include <errno.h>
@@ -54,12 +55,14 @@ inline unsigned char inb(unsigned short p) {
 I686Serial::I686Serial(int id, int baudrate)
     : Device(Device::TTY),
       base(ports[(id < 1 || id > maxPorts) ? 0 : id - 1].base),
-      irqn(ports[(id < 1 || id > maxPorts) ? 0 : id - 1].irqn), portId(id),
+      irqn(ports[(id < 1 || id > maxPorts) ? 0 : id - 1].irqn),
       rxQueue(rxQueueMin + baudrate / 500) {
-  if (id < 1 || id > maxPorts)
+  if (id < 1 || id > maxPorts) {
     errorHandler(Error::UNEXPECTED);
-  if (baudrate <= 0 || baudrate > 115200)
+  }
+  if (baudrate <= 0 || baudrate > 115200) {
     errorHandler(Error::UNEXPECTED);
+  }
   unsigned short divisor = 115200 / baudrate;
 
   // Setting the divisor to the controller
@@ -84,7 +87,7 @@ I686Serial::I686Serial(int id, int baudrate)
   outb(base + MCR, 0x0F);
 
   // The table slot is the ISA irqn number, vector = irq + 32. IRQregisterIrq
-  // only fills irqnForwardingTable, so the IOAPIC is programmed here.
+  // only fills IRQForwardingTable, so the IOAPIC is programmed here.
   IRQregisterIrq(dLock, irqn, &I686Serial::IRQhandleInterrupt, this);
   enableIrqIOAPIC(irqn, irqn + 32, APICGetID());
   setMaskIOAPIC(irqn, false);

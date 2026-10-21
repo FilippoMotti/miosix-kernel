@@ -2,6 +2,7 @@
 #include "lapic.h"
 #include "hpet.h"
 #include "kernel/timeconversion.h"
+#include "vga.cpp"
 
 namespace miosix {
 #define IA32_APIC_BASE_MSR 0x1B
@@ -15,6 +16,7 @@ static volatile localAPICStruct *lapic = nullptr;
 uint32_t ticks_1ms;
 static CoarseTimeConversion ctc;
 int timer_vector;
+
 static inline uint64_t rdmsr(uint32_t msr) {
   uint32_t lo;
   uint32_t hi;
@@ -76,6 +78,7 @@ void setSchedulerInterruptPending() {
   // ICR low: idt number 48| fixed(000) | level assert (bit 14) |
   // (01<<18) (this because we want to send the interrupt to itself)
   lapic->icr_low.reg = (1 << 18) | (1 << 14) | 48;
+  asm volatile("nop" ::: "memory");
 }
 
 void APICSendIPI(uint32_t apicId, uint32_t vector) {
@@ -105,6 +108,9 @@ void initLAPIC() {
   // Set the Spurious Interrupt Vector Register bit 8 to start receiving
   // interrupts
   lapic->sivr.reg = 0x100 | 0xFF;
+  const char buf[] = "LAPIC done\r\n";
+  for (size_t i = 0; i < 10; i++)
+    print(buf[i]);
 }
 
 uint32_t APICGetID() { return lapic->id.reg; }
@@ -163,10 +169,10 @@ void initLAPICTimerHPET(uint32_t timer_interrupt_vector) {
   unsigned long long wait = 10000000000000ULL / HPETgetPeriod(); // 10 ms
   while (HPETRead() - t0 < wait) {
   }
-
+  unsigned long long elapsedHpet = HPETRead() - t0;
+  unsigned long long elapsedNs = elapsedHpet * HPETgetPeriod() / 1000000ULL;
   // Now we know how often the APIC timer has ticked in 10ms
   uint32_t ticksIn10ms = 0xFFFFFFFF - lapic->timer_current.reg;
-
   uint32_t ticks_1ms = ticksIn10ms / 10;
 
   // Start timer as one-shot on requested vector, divider 16, with 1ms ticks
@@ -175,7 +181,9 @@ void initLAPICTimerHPET(uint32_t timer_interrupt_vector) {
 
   lapic->timer_divide.reg = 0x03;
   lapic->timer_initial.reg = ticks_1ms;
-  ctc = CoarseTimeConversion(ticksIn10ms * 1000 / wait);
+  uint32_t hz = static_cast<uint32_t>(
+      static_cast<unsigned long long>(ticksIn10ms) * 1000000000ULL / elapsedNs);
+  ctc = CoarseTimeConversion(hz);
   timer_vector = timer_interrupt_vector;
 }
 void APICTimerSetPreemption(unsigned int ns) {
