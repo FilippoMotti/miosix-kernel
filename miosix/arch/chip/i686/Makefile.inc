@@ -26,9 +26,11 @@ $(CPU_INC)/interfaces-impl/ioapic.cpp				   \
 $(CPU_INC)/interfaces-impl/lapic.cpp				   \
 $(CPU_INC)/interfaces-impl/mmu.cpp				   \
 $(CPU_INC)/interfaces-impl/userspace.cpp			   \
+$(CPU_INC)/interfaces-impl/vga.cpp			   \
 arch/drivers/os_timer/i686_os_timer.cpp				  \
 arch/drivers/gpio/i686_gpio.cpp					 \
 arch/drivers/serial/i686_serial.cpp					 \
+arch/drivers/serial/i686_vga.cpp					 \
 arch/drivers/sleep/i686_sleep.cpp                    \
 $(CHIP_INC)/interfaces-impl/delays.cpp                   \
 $(CHIP_INC)/interfaces-impl/poweroff.cpp

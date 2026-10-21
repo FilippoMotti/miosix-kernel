@@ -27,4 +27,4 @@
 
 #pragma once
 
-#include "drivers/serial/i686_serial.h"
+#include "drivers/serial/i686_vga.h"

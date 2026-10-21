@@ -71,8 +71,8 @@ void IRQbspInit() {
       GPIOD->OSPEEDR=0xaaaaaaaa;*/
 
   // Initialize default serial
-  IRQsetDefaultConsole(intrusive_ref_ptr<Device>(
-      new I686Serial(defaultSerial, defaultSerialSpeed)));
+  IRQsetDefaultConsole(intrusive_ref_ptr<Device>(new VGAConsole()));
+  asm volatile("cli" ::: "memory");
 }
 
 void bspInit2() {
