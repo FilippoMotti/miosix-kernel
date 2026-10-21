@@ -1,13 +1,14 @@
 #pragma once
 #include "gdt.h"
 #include "string.h"
+#include "vga.h"
 
 namespace miosix {
 
-extern void GDTLoad(uint32_t);
-extern void TSSLoad();
+extern "C" void GDTLoad(uint32_t);
+extern "C" void TSSLoad();
 
-struct GDTEntryStruct GDTEntries[7];
+struct GDTEntryStruct GDTEntries[6];
 struct GDTPointerStruct GDTPointer;
 struct TSSEntryStruct TSSEntry;
 
@@ -28,21 +29,26 @@ void setGDTGate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access,
 
 void writeTSS(uint32_t num, uint16_t ss0, uint32_t esp0) {
   uint32_t base = (uint32_t)&TSSEntry;
-  uint32_t limit = sizeof(TSSEntryStruct) - 1;
+  uint32_t limit = base + sizeof(TSSEntryStruct);
 
-  setGDTGate(num, base, limit, 0x89, 0x40);
-  memset(&GDTEntries, 0, sizeof(GDTEntries));
+  setGDTGate(num, base, limit, 0xE9, 0x00);
 
+  memset(&TSSEntry, 0, sizeof(TSSEntryStruct));
   TSSEntry.ss0 = ss0;
   TSSEntry.esp0 = esp0;
-  TSSEntry.cs = 0x08;
-  TSSEntry.iomap_base = sizeof(TSSEntryStruct);
-  TSSLoad();
+  TSSEntry.cs = 0x08 | 0x3;
+  TSSEntry.gs = 0x10 | 0x3;
+  TSSEntry.fs = 0x10 | 0x3;
+  TSSEntry.es = 0x10 | 0x3;
+  TSSEntry.ds = 0x10 | 0x3;
+  TSSEntry.ss = 0x10 | 0x3;
 }
 
 void initGDT() {
+  memset(&GDTEntries, 0, sizeof(GDTEntries));
+
   // sub 1 is to use the right offset for memory
-  GDTPointer.limit = (sizeof(struct GDTEntryStruct) * 7) - 1;
+  GDTPointer.limit = (sizeof(struct GDTEntryStruct) * 6) - 1;
   GDTPointer.base = reinterpret_cast<uint32_t>(&GDTEntries);
 
   setGDTGate(0, 0, 0, 0, 0);              // Null segment
@@ -61,6 +67,11 @@ void initGDT() {
   writeTSS(5, 0x10, 0x0);
 
   GDTLoad((uint32_t)&GDTPointer);
+
+  TSSLoad();
+  const char buf[] = "GDT done\r\n";
+  for (size_t i = 0; i < 10; i++)
+    print(buf[i]);
 }
 
 } // namespace miosix

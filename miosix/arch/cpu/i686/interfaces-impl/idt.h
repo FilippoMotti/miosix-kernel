@@ -18,16 +18,16 @@ namespace miosix {
 //---------------------------------------------------------------
 //
 struct IDTEntryStruct {
-  uint16_t offset_low;
-  uint16_t selector; // code segment selector
-  uint8_t zero;
-  uint8_t flags; // gate type, dpl, and p fields
-  uint16_t offset_high;
+  volatile uint16_t offset_low;
+  volatile uint16_t selector; // code segment selector
+  volatile uint8_t zero;
+  volatile uint8_t flags; // gate type, dpl, and p fields
+  volatile uint16_t offset_high;
 } __attribute__((packed));
 
 struct IDTPointerStruct {
-  uint16_t limit;
-  uint32_t base;
+  volatile uint16_t limit;
+  volatile uint32_t base;
 } __attribute__((packed));
 
 typedef enum {
@@ -46,11 +46,11 @@ typedef enum {
 } IDT_FLAGS;
 
 struct InterruptRegisters {
-  uint32_t cr2;
-  uint32_t ds;
-  uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-  uint32_t int_no, err_code;
-  uint32_t eip, csm, eflags, useresp, ss;
+  volatile uint32_t cr2;
+  volatile uint32_t ds;
+  volatile uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
+  volatile uint32_t int_no, err_code;
+  volatile uint32_t eip, csm, eflags, useresp, ss;
 };
 
 void initIDT();
@@ -113,5 +113,12 @@ void irq13();
 void irq14();
 void irq15();
 void irq17();
+void irq21();
+void irq22();
+void irq23();
+void irq24();
+void irq28();
+void irq29();
+void irq30();
 }
 } // namespace miosix

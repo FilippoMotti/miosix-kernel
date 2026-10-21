@@ -26,6 +26,7 @@
  ***************************************************************************/
 
 #include "interrupts.h"
+#include "gdt.cpp"
 #include "interfaces/arch_registers.h"
 #include "interfaces/interrupts.h"
 #include "interfaces/poweroff.h"
@@ -39,6 +40,7 @@
 #include "miosix_settings.h"
 #include "util/util.h"
 
+#include "gdt.h"
 #include "idt.h"
 #include "ioapic.h"
 #include "lapic.h"
@@ -101,6 +103,7 @@ extern "C" void irqHandler(struct InterruptRegisters *regs) {
 
 void IRQinitIrqTable() noexcept {
 
+  initGDT();
   initIDT();
 
   for (unsigned int i = 0; i < numInterrupts; i++) {

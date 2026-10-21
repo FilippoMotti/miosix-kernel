@@ -3,6 +3,7 @@
 #include "interrupts.h"
 #include "lapic.h"
 #include "string.h"
+#include "vga.h"
 #include <cstdint>
 
 namespace miosix {
@@ -85,6 +86,9 @@ void initIDT() {
 
   loadIDT((uint32_t)&IDTPointer); // Loads the IDT and fills it with the CPU
                                   // excpetions and IRQs
+  const char buf[] = "IDT done\r\n";
+  for (size_t i = 0; i < 10; i++)
+    print(buf[i]);
 }
 
 void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector,

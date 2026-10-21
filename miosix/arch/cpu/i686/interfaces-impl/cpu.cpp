@@ -82,7 +82,7 @@ void IRQportableStartKernel() noexcept {
   unsigned int s_ctxsave[miosix::CTXSAVE_SIZE];
   ctxsave[getCurrentCoreId()] = s_ctxsave; // make global ctxsave point to it
   IRQinvokeScheduler();
-  asm volatile("sti" ::
+  asm volatile("sti;nop" ::
                    : "memory"); // enable hardware interrupt (memory to creare a
                                 // compiler fence)
   // Never reaches here
