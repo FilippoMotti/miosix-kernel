@@ -235,10 +235,9 @@ extract() {
     done
   fi
 }
-
-extract 'binutils' $BINUTILS.tar.xz patches/binutils.patch
-extract 'gcc' $GCC.tar.xz patches/gcc.patch
-extract 'newlib' $NEWLIB.tar.gz patches/newlib.patch
+extract 'binutils' $BINUTILS.tar.xz patches/binutils-i686.patch
+extract 'gcc' $GCC.tar.xz patches/gcc-i686.patch
+extract 'newlib' $NEWLIB.tar.gz patches/newlib-i686.patch
 extract 'gdb' $GDB.tar.xz patches/gdb.patch
 extract 'gmp' $GMP.tar.xz
 extract 'mpfr' $MPFR.tar.xz
@@ -265,8 +264,7 @@ cd $GMP
 if [[ $HOST ]]; then
   # GMP's configure script is bugged and does not properly handle canadian cross
   # compiling, so we need to properly inform it manually by setting these
-  # environment variables. See also: https://gmplib.org/list-archives/
-  -discuss/2020-July/006519.html
+  # environment variables. See also: https://gmplib.org/list-archives/-discuss/2020-July/006519.html
   export CC_FOR_BUILD='gcc'
   export CPP_FOR_BUILD='g++'
 fi
