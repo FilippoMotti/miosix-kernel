@@ -47,6 +47,11 @@
 
 namespace miosix {
 
+extern "C" {
+// declar to the compiler that is a block of byte, not just a pointer
+extern char __eh_frame_start[];
+void __register_frame(void *begin);
+}
 //
 // Initialization
 //
@@ -71,11 +76,15 @@ void IRQbspInit() {
       GPIOD->OSPEEDR=0xaaaaaaaa;*/
 
   // Initialize default serial
+  // IRQsetDefaultConsole(intrusive_ref_ptr<Device>( new
+  // I686Serial(defaultSerial, defaultSerialSpeed)));
+
   IRQsetDefaultConsole(intrusive_ref_ptr<Device>(new VGAConsole()));
   asm volatile("cli" ::: "memory");
 }
 
 void bspInit2() {
+  __register_frame(__eh_frame_start);
 #ifdef WITH_FILESYSTEM
   basicFilesystemSetup(intrusive_ref_ptr<Device>());
 #endif // WITH_FILESYSTEM

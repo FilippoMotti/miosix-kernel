@@ -25,6 +25,19 @@ SECTIONS
       *(.data.*)
       _edata = .;
   }
+  .eh_frame BLOCK(4K) : ALIGN(4K)
+{
+    __eh_frame_start = .;
+    KEEP(*(.eh_frame))
+    KEEP(*(.eh_frame.*))
+    LONG(0)
+}
+
+.gcc_except_table BLOCK(4K) : ALIGN(4K)
+{
+    *(.gcc_except_table)
+    *(.gcc_except_table.*)
+}
   .init_array BLOCK(4K) : ALIGN(4K)
   {
       __miosix_init_array_start = .;
