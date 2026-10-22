@@ -11,7 +11,7 @@ set(MIOSIX_MULTILIB_PATH "")
 # Select appropriate compiler flags for both ASM/C/C++/linker
 set(MIOSIX_CPU_FLAGS "-m32 -march=i686")
 set(MIOSIX_CHIP_C_FLAGS "-D_CHIP_I686 -ffreestanding -fno-pie")
-set(MIOSIX_CHIP_CXX_FLAGS "-D_CHIP_I686 -ffreestanding -fno-pie -fno-exceptions -fno-rtti")
+set(MIOSIX_CHIP_CXX_FLAGS "-D_CHIP_I686 -ffreestanding -fno-pie -fno-exceptions")
 
 # Select architecture specific files
 set(MIOSIX_CHIP_SRC

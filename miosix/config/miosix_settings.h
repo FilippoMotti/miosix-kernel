@@ -205,11 +205,11 @@ constexpr auto extraChecks = ExtraChecks::None;
 #endif // defined(WITH_DEEP_SLEEP) && !defined(WITH_SLEEP)
 
 /// Minimum stack size (MUST be divisible by 4)
-const unsigned int STACK_MIN = 256;
+const unsigned int STACK_MIN = 512;
 
 /// \internal Size of idle thread stack.
 /// Should be >=STACK_MIN (MUST be divisible by 4)
-const unsigned int STACK_IDLE = 268;
+const unsigned int STACK_IDLE = 512;
 
 /// Default stack size for pthread_create.
 /// The chosen value is enough to call C standard library functions

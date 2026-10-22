@@ -170,6 +170,7 @@ void initLAPICTimerHPET(uint32_t timer_interrupt_vector) {
   while (HPETRead() - t0 < wait) {
   }
   unsigned long long elapsedHpet = HPETRead() - t0;
+  // it is still 10 ms, but in ns, but more precise than lapic timer
   unsigned long long elapsedNs = elapsedHpet * HPETgetPeriod() / 1000000ULL;
   // Now we know how often the APIC timer has ticked in 10ms
   uint32_t ticksIn10ms = 0xFFFFFFFF - lapic->timer_current.reg;
@@ -181,6 +182,7 @@ void initLAPICTimerHPET(uint32_t timer_interrupt_vector) {
 
   lapic->timer_divide.reg = 0x03;
   lapic->timer_initial.reg = ticks_1ms;
+  // basically the frequency is calculated as number of ticks *10^9/10ms
   uint32_t hz = static_cast<uint32_t>(
       static_cast<unsigned long long>(ticksIn10ms) * 1000000000ULL / elapsedNs);
   ctc = CoarseTimeConversion(hz);

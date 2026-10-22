@@ -10,7 +10,7 @@ CPU_INC := arch/cpu/i686
 ## Select appropriate compiler flags for both ASM/C/C++/linker
 CPU_FLAGS := -m32 -march=i686
 CHIP_CFLAGS   := -D_CHIP_I686 -fno-pie $(XRAM)
-CHIP_CXXFLAGS := -D_CHIP_I686 -fno-pie -fexceptions -fno-rtti $(XRAM)
+CHIP_CXXFLAGS := -D_CHIP_I686 -fno-pie -fexceptions $(XRAM)
 
 ## Select architecture specific files
 CHIP_SRC :=                                            \
