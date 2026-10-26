@@ -82,8 +82,26 @@ struct IrqForwardingEntry {
 /// \internal Table of run-time registered interrupt handlers and args
 static IrqForwardingEntry irqForwardingTable[numInterrupts];
 
-//
-extern "C" void irqHandler(struct InterruptRegisters *regs) {
+void IRQinitIRQStack(unsigned int core) {
+  unsigned int *p = reinterpret_cast<unsigned int *>(IRQStacks[core].stack);
+  unsigned int words = IRQ_STACK_SIZE / sizeof(unsigned int);
+  for (unsigned int i = 0; i < words; i++)
+    p[i] = i < CANARY_WORDS ? WATERMARK_FILL : STACK_FILL;
+  // Top of the stack, 16 byte aligned by construction
+  IRQStackTops[core] =
+      reinterpret_cast<unsigned int>(IRQStacks[core].stack) + IRQ_STACK_SIZE;
+}
+
+extern "C" void IRQStackCheck() {
+  const unsigned int *p = reinterpret_cast<const unsigned int *>(
+      IRQStacks[getCurrentCoreId()].stack);
+  for (unsigned int i = 0; i < CANARY_WORDS; i++)
+    if (p[i] != WATERMARK_FILL) [[unlikely]]
+      errorHandler(Error::STACK_OVERFLOW);
+}
+
+ extern "C" void irqHandler(struct InterruptRegisters *regs) {
+  IRQStackCheck();
   if (regs->int_no >= 32 and regs->int_no < 256) {
     uint32_t id = regs->int_no - 32;
 
@@ -96,6 +114,7 @@ extern "C" void irqHandler(struct InterruptRegisters *regs) {
     IRQsystemReboot();
   }
 }
+extern "C" unsigned int getCurrentCoreIdAsm(void) { return getCurrentCoreId(); }
 
 //
 // Implementation of the interrupts.h interface
@@ -104,6 +123,8 @@ extern "C" void irqHandler(struct InterruptRegisters *regs) {
 void IRQinitIrqTable() noexcept {
 
   initGDT();
+  IRQinitIRQStack(0);
+
   initIDT();
 
   for (unsigned int i = 0; i < numInterrupts; i++) {
@@ -169,6 +190,7 @@ void __attribute__((naked)) PendSV_Handler() {
 #else
 #error No scheduler selected in miosix_settings.h
 #endif
+  asm volatile("call IRQStackCheck");
   asm volatile("call sendEOI");
   restoreContext();
 }

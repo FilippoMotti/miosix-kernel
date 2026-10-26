@@ -53,5 +53,22 @@ void IRQunregisterIrqOnCurrentCore(unsigned int id, void (*handler)(void *),
                                    void *arg) noexcept;
 
 #endif // WITH_SMP
+
+#define IRQ_STACK_SIZE 4096
+#define CANARY_WORDS 4
+
+/* Per CPU interrupt stacks */
+struct IRQStack {
+  char stack[IRQ_STACK_SIZE];
+} __attribute__((aligned(16)));
+
+static IRQStack IRQStacks[CPU_NUM_CORES];
+
+extern "C" unsigned int IRQStackTops[CPU_NUM_CORES];
+unsigned int IRQStackTops[CPU_NUM_CORES];
+
+void IRQinitIRQStack(unsigned int core);
+extern "C" void IRQStackCheck();
+
 void __attribute__((naked)) PendSV_Handler();
 } // namespace miosix

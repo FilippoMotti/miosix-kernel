@@ -55,6 +55,7 @@
       "pushal                  \n\t" /*eax,ecx,edx,ebx,esp,ebp,esi,edi*/       \
       "mov  ctxsave, %eax      \n\t" /*current context*/                       \
       "mov  %esp, (%eax)       \n\t" /*save sp in context*/                    \
+      "mov  IRQStackTops, %esp \n\t" /* core 0 IRQ stack */                    \
   );
 /**
  * \internal
