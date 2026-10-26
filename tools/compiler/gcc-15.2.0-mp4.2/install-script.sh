@@ -472,6 +472,7 @@ $SUDO ../$GCC/configure \
   --enable-threads=miosix \
   --enable-languages="c,c++" \
   --enable-lto \
+  --enable-initfini-array \
   --disable-wchar_t \
   --with-newlib \
   ${__GCC_CONF_HEADERS_PARAM} \

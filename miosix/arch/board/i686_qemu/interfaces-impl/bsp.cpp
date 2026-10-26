@@ -47,16 +47,12 @@
 
 namespace miosix {
 
-extern "C" {
-// declar to the compiler that is a block of byte, not just a pointer
-extern char __eh_frame_start[];
-void __register_frame(void *begin);
-}
 //
 // Initialization
 //
 
 void IRQbspInit() {
+
   // SystemCoreClockUpdate();
   /*
       //Enable all gpios
@@ -84,7 +80,6 @@ void IRQbspInit() {
 }
 
 void bspInit2() {
-  __register_frame(__eh_frame_start);
 #ifdef WITH_FILESYSTEM
   basicFilesystemSetup(intrusive_ref_ptr<Device>());
 #endif // WITH_FILESYSTEM
