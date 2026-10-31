@@ -13,7 +13,7 @@ namespace miosix {
 
 VGAConsole::VGAConsole()
     : Device(Device::TTY),
-      vga(reinterpret_cast<volatile unsigned short *>(0xB8000)) {
+      vga(reinterpret_cast<volatile unsigned short *>(0x800B8000)) {
   defaultColor = (COLOR8_LIGHT_GREY << 8) | (COLOR8_BLACK << 12);
   currenctColor = defaultColor;
   Reset();

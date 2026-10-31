@@ -60,7 +60,6 @@ static void unexpectedInterrupt(void *);
  * cpu.
  */
 const unsigned int numInterrupts = 224;
-
 /**
  * \internal
  * To enable interrupt registration at run-time and interrupt arg pointer
@@ -100,7 +99,7 @@ extern "C" void IRQStackCheck() {
       errorHandler(Error::STACK_OVERFLOW);
 }
 
- extern "C" void irqHandler(struct InterruptRegisters *regs) {
+extern "C" void irqHandler(struct InterruptRegisters *regs) {
   IRQStackCheck();
   if (regs->int_no >= 32 and regs->int_no < 256) {
     uint32_t id = regs->int_no - 32;
