@@ -123,58 +123,20 @@ isrCommonStub:
 .extern IRQStackTops
 irqCommonStub:
     pushl %eax
-    pushl %ecx
     pushl %edx
     call getCurrentCoreIdAsm
     movl IRQStackTops(,%eax,4), %edx
-    movl %edx, %ecx
-    cmp %edx, %esp
-    ja 1f
-    subl $4096, %ecx
-    cmp %ecx, %esp
-    jbe    1f
-
-    popl %edx
-    popl %ecx
-    popl %eax
-    pushal
-    movl %ds, %eax
-    pushl %eax
-    movl %cr2, %eax
-    pushl %eax
-
-    movw $0x10, %ax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %fs
-    movw %ax, %gs
-
-    pushl %esp
-    call irqHandler
-
-    addl $8, %esp
-    popl %ebx
-    movw %bx, %ds
-    movw %bx, %es
-    movw %bx, %fs
-    movw %bx, %gs
-
-    popal
-    addl $8, %esp
-    iretl
-
-1:
+    
     movl %esp, %eax
     movl  %edx, %esp # switch to irq stack
     pushl %eax # original esp
-    pushl 28(%eax) # eflags
-    pushl 24(%eax) # cs
-    pushl 20(%eax) # eip
-    pushl 16(%eax) # err_code
-    pushl 12(%eax) # int_no
-    movl  4(%eax), %ecx # original ecx
+    pushl 24(%eax) # eflags
+    pushl 20(%eax) # cs
+    pushl 16(%eax) # eip
+    pushl 12(%eax) # err_code
+    pushl 8(%eax) # int_no
     movl  (%eax), %edx # original edx
-    movl  8(%eax), %eax # original eax
+    movl  4(%eax), %eax # original eax
     
     pushal
     movl %ds, %eax
@@ -202,7 +164,6 @@ irqCommonStub:
     addl  $20, %esp
     popl  %esp
     popl  %edx
-    popl  %ecx
     popl  %eax
     addl $8, %esp
     iretl
