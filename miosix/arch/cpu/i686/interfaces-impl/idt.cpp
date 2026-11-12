@@ -1,8 +1,11 @@
 #pragma once
 #include "idt.h"
+#include "interfaces/poweroff.h"
 #include "interrupts.h"
+#include "kernel/logging.h"
 #include "lapic.h"
 #include "string.h"
+#include "util/util.h"
 #include "vga.h"
 #include <cstdint>
 
@@ -13,6 +16,29 @@ struct IDTPointerStruct IDTPointer;
 
 extern "C" void loadIDT(uint32_t);
 
+#ifdef WITH_ERRLOG
+
+static void printUnsignedInt(unsigned int x) {
+  char result[] = "0x........\r\n";
+  formatHex(result + 2, x, 8);
+  IRQerrorLog(result);
+}
+
+static void tryPrintingProgramCounter(unsigned int eip, unsigned int esp) {
+  // Miosix uses the stack-in-heap approach for kernel threads, so compare the
+  // stack pointer against the boundaries of the heap
+  extern char _end asm("_end");           // defined in the linker script
+  extern char _heap_end asm("_heap_end"); // defined in the linker script
+  const unsigned int off = 4; // Offset in bytes of PC in the stack frame on x86
+  if (esp < reinterpret_cast<unsigned int>(&_end) ||
+      esp > reinterpret_cast<unsigned int>(&_heap_end) - off -
+                sizeof(unsigned int))
+    IRQerrorLog("? (Corrupted stack)\r\n");
+  else
+    printUnsignedInt(eip);
+}
+
+#endif // WITH_ERRLOG
 void initIDT() {
   // disabling interrupts when loading the new IDT
   asm volatile("cli");
@@ -103,10 +129,47 @@ void setIDTGate(uint8_t num, uint32_t offset, uint16_t selector,
 
 extern "C" {
 
-// #TODO: implement the actual handler. TBD
+const char *isrMessages[32] = {"Division Error\r\n",
+                               "Debug\r\n",
+                               "Non-maskable Interrupt\r\n",
+                               "Breakpoint\r\n",
+                               "Overflow\r\n",
+                               "Bound Range Exceeded\r\n",
+                               "Invalid Opcode\r\n",
+                               "Device Not Available\r\n",
+                               "Double Fault\r\n",
+                               "Coprocessor Segment Overrun\r\n",
+                               "Invalid TSS\r\n",
+                               "Segment Not Present\r\n",
+                               "Stack-Segment Fault\r\n",
+                               "General Protection Fault\r\n",
+                               "Page Fault\r\n",
+                               "Reserved\r\n",
+                               "x87 Floating-Point Exception\r\n",
+                               "Alignment Check\r\n",
+                               "Machine Check\r\n",
+                               "SIMD Floating-Point Exception\r\n",
+                               "Virtualization Exception\r\n",
+                               "Control Protection Exception\r\n",
+                               "Reserved\r\n",
+                               "Reserved\r\n",
+                               "Reserved\r\n",
+                               "Reserved\r\n",
+                               "Reserved\r\n",
+                               "Reserved\r\n",
+                               "Hypervisor Injection Exception\r\n",
+                               "VMM Communication Exception\r\n",
+                               "Security Exception\r\n",
+                               "Reserved\r\n"};
 void isrHandler(struct InterruptRegisters *regs) {
-  if (regs->int_no < 32) {
-  }
+  FastGlobalLockFromIrq lock;
+
+#ifdef WITH_ERRLOG
+  IRQerrorLog("\r\n***Unexpected HardFault @ ");
+  tryPrintingProgramCounter(regs->eip, regs->esp);
+  IRQerrorLog(isrMessages[regs->int_no]);
+#endif // WITH_ERRLOG
+  IRQsystemReboot();
 }
 }
 
