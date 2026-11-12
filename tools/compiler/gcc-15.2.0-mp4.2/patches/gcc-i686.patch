@@ -526,6 +526,19 @@ diff --color -urN gcc-15.2.0/gcc/config/arm/t-arm-miosix gcc-15.2.0-nuovo/gcc/co
 +			mthumb/march.$(ARCH)/mfloat-abi.soft=mthumb/march.$(ARCH))
 +MULTILIB_REUSE		+= $(foreach ARCH, armv6s-m armv7-m armv8-m\.base, \
 +			mthumb/march.$(ARCH)/mfloat-abi.soft/fno-exceptions=mthumb/march.$(ARCH)/fno-exceptions)
+diff --color -urN gcc-15.2.0/gcc/config/i386/i386elf.h gcc-15.2.0-nuovo/gcc/config/i386/i386elf.h
+--- gcc-15.2.0/gcc/config/i386/i386elf.h	2025-08-08 08:51:40.540349240 +0200
++++ gcc-15.2.0-nuovo/gcc/config/i386/i386elf.h	2026-11-03 17:15:49.086926729 +0100
+@@ -51,3 +51,9 @@
+ #undef ASM_OUTPUT_ALIGNED_BSS
+ #define ASM_OUTPUT_ALIGNED_BSS(FILE, DECL, NAME, SIZE, ALIGN) \
+   asm_output_aligned_bss (FILE, DECL, NAME, SIZE, ALIGN)
++
++#undef  SIZE_TYPE
++#define SIZE_TYPE (TARGET_64BIT ? "long unsigned int" : "unsigned int")
++#undef  PTRDIFF_TYPE
++#define PTRDIFF_TYPE (TARGET_64BIT ? "long int" : "int")
++
 diff --color -urN gcc-15.2.0/gcc/config/i386/miosix.h gcc-15.2.0-nuovo/gcc/config/i386/miosix.h
 --- gcc-15.2.0/gcc/config/i386/miosix.h	1970-01-01 01:00:00.000000000 +0100
 +++ gcc-15.2.0-nuovo/gcc/config/i386/miosix.h	2026-10-23 15:09:06.928206495 +0200
