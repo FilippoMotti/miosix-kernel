@@ -32,13 +32,6 @@ SECTIONS
         *(.rodata.*)
     }
 
-    .eh_frame_hdr ALIGN(4K) : AT(ADDR(.eh_frame_hdr) - 0x80000000)
-    {
-        __GNU_EH_FRAME_HDR = .;
-        *(.eh_frame_hdr)
-        __GNU_EH_FRAME_HDR_END = .;
-    }
-    
     .eh_frame ALIGN(4K) : AT(ADDR(.eh_frame) - 0x80000000)
     {
         KEEP(*(.eh_frame))

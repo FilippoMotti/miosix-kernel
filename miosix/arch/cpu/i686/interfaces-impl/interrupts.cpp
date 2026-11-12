@@ -47,6 +47,15 @@
 
 namespace miosix {
 
+/* Per CPU interrupt stacks */
+struct IRQStack {
+  char stack[IRQ_STACK_SIZE];
+} __attribute__((aligned(16)));
+
+static IRQStack IRQStacks[CPU_NUM_CORES];
+
+unsigned int IRQStackTops[CPU_NUM_CORES];
+
 static void unexpectedInterrupt(void *);
 
 //
@@ -177,9 +186,9 @@ void __attribute__((naked)) PendSV_Handler() {
   // Since we are forced to perform the function call in assembly, we need to
   // call the C++ mangled name of pendsvImpl()
   saveContext();
-// We would like to call Scheduler::IRQrunScheduler() which will select
-// at compile-time which scheduler to run, but this can't be done froma naked
-// function and we're trying to avoid to call an intermediate C++ function
+  // We would like to call Scheduler::IRQrunScheduler() which will select
+  // at compile-time which scheduler to run, but this can't be done froma naked
+  // function and we're trying to avoid to call an intermediate C++ function
 #if defined(SCHED_TYPE_PRIORITY)
   asm volatile("call _ZN6miosix17PriorityScheduler15IRQrunSchedulerEv");
 #elif defined(SCHED_TYPE_CONTROL_BASED)

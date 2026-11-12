@@ -8,7 +8,7 @@ PREFIX := i686-miosix-elf
 CPU_INC := arch/cpu/i686
 
 ## Select appropriate compiler flags for both ASM/C/C++/linker
-CPU_FLAGS := -m32 -march=i686 -Wl,--eh-frame-hdr -Wl,-u,dl_iterate_phdr -Wl,--allow-multiple-definition -mpreferred-stack-boundary=2
+CPU_FLAGS := -m32 -march=i686 -Wl,--eh-frame-hdr -Wl,-u,dl_iterate_phdr -mpreferred-stack-boundary=2
 CHIP_CFLAGS   := -D_CHIP_I686 -fno-pie $(XRAM)
 CHIP_CXXFLAGS := -D_CHIP_I686 -fno-pie -fexceptions $(XRAM)
 
