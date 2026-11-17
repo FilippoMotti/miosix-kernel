@@ -59,8 +59,9 @@ higher_half:
 
 .section .data
 .balign 4096
-.globl initial_page_dir
+.global initial_page_dir
 initial_page_dir:
+# set 1 to present, r/w and ps flags (using ps for initial setup, then 4kb page size)
     .long 0b10000011
 
     .rept 512 - 1
@@ -71,7 +72,8 @@ initial_page_dir:
     .long (1 << 22) | 0b10000011
     .long (2 << 22) | 0b10000011
     .long (3 << 22) | 0b10000011
+    .long (4 << 22) | 0b10000011
 
-    .rept 1024 - 512 - 4
+    .rept 1024 - 512 - 5
     .long 0
     .endr
