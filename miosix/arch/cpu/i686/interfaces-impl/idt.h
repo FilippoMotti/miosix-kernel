@@ -120,5 +120,8 @@ void irq24();
 void irq28();
 void irq29();
 void irq30();
+
+void isr_spurious_master();
+void isr_spurious_slave();
 }
 } // namespace miosix

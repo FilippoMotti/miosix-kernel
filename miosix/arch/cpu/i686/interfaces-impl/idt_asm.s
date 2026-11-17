@@ -75,7 +75,8 @@ IRQ 3, 35           # COM2
 IRQ 4, 36           # COM1
 IRQ 5, 37           # LPT2
 IRQ 6, 38           # Floppy Disk
-IRQ 7, 39           # LPT1 / Spurious
+# Since there may be cases in which pic timer will send signals before being masked, so it has to be handled separately
+#IRQ 7, 39           # LPT1 / Spurious
 IRQ 8, 40           # CMOS Real-Time Clock
 IRQ 9, 41           # Peripheral
 IRQ 10, 42          # Peripheral
@@ -83,10 +84,24 @@ IRQ 11, 43          # Peripheral
 IRQ 12, 44          # PS/2 Mouse
 IRQ 13, 45          # FPU
 IRQ 14, 46          # Primary ATA
-IRQ 15, 47          # Secondary ATA
+#IRQ 15, 47          # Secondary ATA
 
 #IRQ 16 is PendSV_Handler, which has its own handler
 IRQ 17, 49          # HPETHandler
+
+# PIC master is mapped to irq7 aka number 39
+.global isr_spurious_master
+isr_spurious_master:
+    iret
+
+# PIC slave is mapped to irq15 aka number 47
+.global isr_spurious_slave
+isr_spurious_slave:
+    push %eax
+    mov  $0x20, %al
+    out  %al, $0x20
+    pop  %eax
+    iret
 
 .extern isrHandler
 isrCommonStub:

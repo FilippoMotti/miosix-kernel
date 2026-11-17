@@ -87,9 +87,21 @@ void APICSendIPI(uint32_t apicId, uint32_t vector) {
 }
 
 void initLAPIC() {
-  // Turn off PIC
-  outb(0x21, 0xFF); // Master
-  outb(0xA1, 0xFF); // Slave
+  // Relocate pic to 0x20 and 0x28
+  // set it up and then mask all
+  // this is done for cases in which the pic emits a signal before being masked,
+  // then when we enable interrupts the pic will have a spurious interrupt
+  // causing an isr15
+  outb(0x20, 0x11);
+  outb(0xA0, 0x11); // starts the initialization sequence (in cascade mode)
+  outb(0x21, 0x20);
+  outb(0xA1, 0x28); // ICW2: Master (and slave) PIC vector offset
+  outb(0x21, 0x04);
+  outb(0xA1, 0x02); // ICW3: tell Master PIC that there is a slave PIC at IRQ2
+  outb(0x21, 0x01); // ICW3: tell Slave PIC its cascade identity
+  outb(0xA1, 0x01); // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+  outb(0x21, 0xFF);
+  outb(0xA1, 0xFF); // Masked them
 
   // Activate APIC
   uint64_t apic_msr = rdmsr(IA32_APIC_BASE_MSR);
@@ -97,13 +109,14 @@ void initLAPIC() {
   wrmsr(IA32_APIC_BASE_MSR, apic_msr);
 
   // Get apic base address
-  // #TODO: Remember to add it to virtual memory; For correct operation the
-  // local APIC registers should be mapped as 'strong uncachable'.
   lapic = (localAPICStruct *)(apic_msr & 0xFFFFF000);
   // The Task Priority Register (TPR) is a 32-bit register used to control the
   // minimum priority an interrupt needs to have for it to be delivered. 0 is
   // lowest, 15 is highest and only higher AND NOT higher or equal is delivered
   lapic->tpr.reg = 0;
+  //
+  // Masked until set
+  lapic->lvt_timer.reg = 0x10000;
 
   // Set the Spurious Interrupt Vector Register bit 8 to start receiving
   // interrupts
@@ -146,7 +159,6 @@ void initLAPICTimerPIT(uint32_t timer_interrupt_vector) {
   uint32_t ticks_1ms = ticksIn10ms / 10;
 
   // Start timer as periodic on requested vector, divider 16, with 1ms ticks
-
   lapic->lvt_timer.reg = timer_interrupt_vector | APIC_LVT_TIMER_MODE_PERIODIC;
 
   lapic->timer_divide.reg = 0x03;
@@ -177,10 +189,8 @@ void initLAPICTimerHPET(uint32_t timer_interrupt_vector) {
   uint32_t ticks_1ms = ticksIn10ms / 10;
 
   // Start timer as one-shot on requested vector, divider 16, with 1ms ticks
-
   lapic->lvt_timer.reg = timer_interrupt_vector;
 
-  lapic->timer_divide.reg = 0x03;
   lapic->timer_initial.reg = ticks_1ms;
   // basically the frequency is calculated as number of ticks *10^9/10ms
   uint32_t hz = static_cast<uint32_t>(

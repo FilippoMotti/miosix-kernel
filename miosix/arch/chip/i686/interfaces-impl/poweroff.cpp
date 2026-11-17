@@ -23,16 +23,32 @@
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, see <http://www.gnu.org/licenses/>   *
- ***************************************************************************/ 
+ ***************************************************************************/
 
 #include "interfaces/poweroff.h"
 #include "interfaces/arch_registers.h"
+#include "stdint.h"
 
 namespace miosix {
 
-void IRQsystemReboot()
-{
-    //NVIC_SystemReset();
+static inline uint8_t inb(uint16_t port) {
+  uint8_t ret;
+  asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+  return ret;
+}
+static inline void outb(uint16_t port, uint8_t val) {
+  asm volatile("outb %0, %1" : : "a"(val), "Nd"(port));
+}
+// Rebooting the system by using the 8042 keyboard controller to pulse the CPU's
+// RESET pin
+void IRQsystemReboot() {
+  asm volatile("cli");
+  uint8_t good = 0x02;
+  while (good & 0x02)
+    good = inb(0x64);
+  outb(0x64, 0xFE);
+  for (;;)
+    asm volatile("hlt");
 }
 
 } // namespace miosix

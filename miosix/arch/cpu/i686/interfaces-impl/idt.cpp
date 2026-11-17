@@ -96,7 +96,7 @@ void initIDT() {
   setIDTGate(36, (uint32_t)irq4, 0x08, 0x8E);
   setIDTGate(37, (uint32_t)irq5, 0x08, 0x8E);
   setIDTGate(38, (uint32_t)irq6, 0x08, 0x8E);
-  setIDTGate(39, (uint32_t)irq7, 0x08, 0x8E);
+  setIDTGate(39, (uint32_t)isr_spurious_master, 0x08, 0x8E);
   setIDTGate(40, (uint32_t)irq8, 0x08, 0x8E);
   setIDTGate(41, (uint32_t)irq9, 0x08, 0x8E);
   setIDTGate(42, (uint32_t)irq10, 0x08, 0x8E);
@@ -104,7 +104,7 @@ void initIDT() {
   setIDTGate(44, (uint32_t)irq12, 0x08, 0x8E);
   setIDTGate(45, (uint32_t)irq13, 0x08, 0x8E);
   setIDTGate(46, (uint32_t)irq14, 0x08, 0x8E);
-  setIDTGate(47, (uint32_t)irq15, 0x08, 0x8E);
+  setIDTGate(47, (uint32_t)isr_spurious_slave, 0x08, 0x8E);
 
   // interrupt for calling the scheduler
   setIDTGate(48, (uint32_t)PendSV_Handler, 0x08, 0x8E);
@@ -169,6 +169,8 @@ void isrHandler(struct InterruptRegisters *regs) {
   tryPrintingProgramCounter(regs->eip, regs->esp);
   IRQerrorLog(isrMessages[regs->int_no]);
 #endif // WITH_ERRLOG
+  for (;;)
+    asm volatile("cli; hlt");
   IRQsystemReboot();
 }
 }
