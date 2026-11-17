@@ -32,6 +32,13 @@ SECTIONS
         *(.rodata.*)
     }
 
+    .eh_frame_hdr ALIGN(4K) : AT(ADDR(.eh_frame_hdr) - 0x80000000)
+    {
+        _EH_FRAME_HDR = .;
+        *(.eh_frame_hdr)
+        _EH_FRAME_HDR_END = .;
+    }
+    
     .eh_frame ALIGN(4K) : AT(ADDR(.eh_frame) - 0x80000000)
     {
         KEEP(*(.eh_frame))
@@ -91,7 +98,9 @@ SECTIONS
     }
     .page_pool (NOLOAD) : ALIGN(4K)
     {
+        _page_pool_start = .;
         *(.page_pool)
+        _page_pool_end = .;
     }
 
     _end = .;

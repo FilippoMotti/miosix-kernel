@@ -22,8 +22,8 @@ int dl_iterate_phdr(int (*callback)(struct dl_phdr_info *, size_t, void *),
   extern char _etext[];
   extern char _data[];
   extern char _end[];
-  extern char __GNU_EH_FRAME_HDR[];
-  extern char __GNU_EH_FRAME_HDR_END[];
+  extern char _EH_FRAME_HDR[];
+  extern char _EH_FRAME_HDR_END[];
 
   static const Elf32_Phdr ph[3] = {
       {// first segment, text
@@ -51,14 +51,14 @@ int dl_iterate_phdr(int (*callback)(struct dl_phdr_info *, size_t, void *),
       {// third segment, eh_frame
        .p_type = PT_GNU_EH_FRAME,
        .p_offset = 0,
-       .p_vaddr = reinterpret_cast<Elf32_Addr>(__GNU_EH_FRAME_HDR),
-       .p_paddr = reinterpret_cast<Elf32_Addr>(__GNU_EH_FRAME_HDR),
+       .p_vaddr = reinterpret_cast<Elf32_Addr>(_EH_FRAME_HDR),
+       .p_paddr = reinterpret_cast<Elf32_Addr>(_EH_FRAME_HDR),
        .p_filesz = static_cast<Elf32_Word>(
-           reinterpret_cast<Elf32_Addr>(__GNU_EH_FRAME_HDR_END) -
-           reinterpret_cast<Elf32_Addr>(__GNU_EH_FRAME_HDR)),
+           reinterpret_cast<Elf32_Addr>(_EH_FRAME_HDR_END) -
+           reinterpret_cast<Elf32_Addr>(_EH_FRAME_HDR)),
        .p_memsz = static_cast<Elf32_Word>(
-           reinterpret_cast<Elf32_Addr>(__GNU_EH_FRAME_HDR_END) -
-           reinterpret_cast<Elf32_Addr>(__GNU_EH_FRAME_HDR)),
+           reinterpret_cast<Elf32_Addr>(_EH_FRAME_HDR_END) -
+           reinterpret_cast<Elf32_Addr>(_EH_FRAME_HDR)),
        .p_flags = 4, // R
        .p_align = 4}};
 
