@@ -96,13 +96,6 @@ SECTIONS
     {
         *(.bootstrap_stack)
     }
-    .page_pool (NOLOAD) : ALIGN(4K)
-    {
-        _page_pool_start = .;
-        *(.page_pool)
-        _page_pool_end = .;
-    }
-
     _end = .;
     _heap_end = _end + 16M;
 }

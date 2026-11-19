@@ -6,8 +6,6 @@
 CHIP_INC := arch/chip/i686
 BOARD_SRC :=                                  \
 $(BOARD_INC)/i686_boot.cpp                        \
-$(BOARD_INC)/paging.cpp                        \
-$(BOARD_INC)/interfaces-impl/bsp.cpp		\
 $(BOARD_INC)/interfaces-impl/bsp.cpp		\
 $(BOARD_INC)/boot.s
 

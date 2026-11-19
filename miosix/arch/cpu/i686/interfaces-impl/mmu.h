@@ -1,5 +1,6 @@
 #pragma once
 #include "interfaces/arch_registers.h"
+#include "stdint.h"
 
 // MMU is always present on x86
 
@@ -11,4 +12,5 @@ namespace miosix {
  */
 
 void IRQenableMPU();
+void setMultibootInfo(uint32_t addr);
 } // namespace miosix
